@@ -1,7 +1,9 @@
 package net.sharksystem.makan;
 
+import identity.Person;
+
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.Date;
 import java.util.List;
 
 public interface Makan {
@@ -32,9 +34,7 @@ public interface Makan {
      */
     Person getAdmin();
 
-    Iterator<CharSequence> getMessages() throws MakanException, IOException;
-
-    CharSequence getMessage(int position, boolean chronologically)
+    MakanMessage getMessage(int position, boolean chronologically)
             throws MakanException, IOException;
 
     /**
@@ -46,5 +46,5 @@ public interface Makan {
      */
     void sync() throws IOException;
 
-    // TODO: get image or something
+    void addMessage(Date creationDate, CharSequence contentAsCharacter, Person creator);
 }
