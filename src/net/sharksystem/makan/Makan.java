@@ -32,7 +32,7 @@ public interface Makan {
      *
      * @return admin of this makan
      */
-    Person getAdmin();
+    Person getAdmin() throws MakanException, IOException;
 
     MakanMessage getMessage(int position, boolean chronologically)
             throws MakanException, IOException;
@@ -46,5 +46,6 @@ public interface Makan {
      */
     void sync() throws IOException;
 
-    void addMessage(Date creationDate, CharSequence contentAsCharacter, Person creator);
+    void addMessage(CharSequence contentAsCharacter)
+            throws MakanException, IOException;
 }

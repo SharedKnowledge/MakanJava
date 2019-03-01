@@ -18,26 +18,34 @@ import java.util.List;
  * classes
  */
 abstract class MakanAASPWrapper implements Makan {
-    private final CharSequence name;
+    private final CharSequence userFriendlyName;
     private final CharSequence uri;
     private final AASPStorage aaspStorage;
     private final IdentityStorage identityStorage;
     private final Person owner;
+    private List<MakanAASPChunkCacheDecorator> remoteMakanChunkCacheList = null;
+    private MakanAASPChunkCacheDecorator localMakanChunkCache = null;
 
-    MakanAASPWrapper(CharSequence name, CharSequence uri, AASPStorage aaspStorage,
+    private static final int MAX_MAKAN_MESSAGE_CACHE_SIZE = 1000;
+    private int makanMaxCacheSize = MAX_MAKAN_MESSAGE_CACHE_SIZE;
+    private List<MakanMessage> makanMessageCache = null;
+    private int makanMessageCacheIndexOffset = 0;
+    private boolean makanMessageCacheChronologically;
+
+
+
+    MakanAASPWrapper(CharSequence userFriendlyName, CharSequence uri, AASPStorage aaspStorage,
                      Person owner, IdentityStorage identityStorage) throws IOException {
-        this.name = name;
+        this.userFriendlyName = userFriendlyName;
         this.uri = uri;
         this.aaspStorage = aaspStorage;
         this.owner = owner;
         this.identityStorage = identityStorage;
-
-        this.initAASPChunkCaches();
     }
 
     @Override
     public CharSequence getName() throws IOException {
-        return this.name;
+        return this.userFriendlyName;
     }
 
     @Override
@@ -45,38 +53,127 @@ abstract class MakanAASPWrapper implements Makan {
         return this.uri;
     }
 
+    private boolean isInitialized() {
+        return this.localMakanChunkCache != null;
+    }
+
     @Override
-    public MakanMessage getMessage(int position, boolean chronologically) throws MakanException, IOException {
+    public MakanMessage getMessage(int position, boolean chronologically)
+            throws MakanException, IOException {
 
-        return null;
-    }
+        if(!this.isInitialized()) { this.sync(); }
 
-    private List<MakanMessageCache> makanCaches;
-
-    private void initAASPChunkCaches() throws IOException {
-        this.makanCaches = new ArrayList<>();
-
-        // get local chunk storages
-        AASPChunkCache aaspChunkCacheLocal = this.aaspStorage.getChunkStorage().getAASPChunkCache(this.uri,
-                this.aaspStorage.getOldestEra(), this.aaspStorage.getEra());
-
-        this.makanCaches.add(new MakanMessageCache(this.owner.getName(), aaspChunkCacheLocal));
-
-        // find storages from remote
-        for(CharSequence sender : this.aaspStorage.getSender()) {
-            AASPChunkStorage incomingChunkStorage = this.aaspStorage.getIncomingChunkStorage(sender);
-            AASPChunkCache aaspChunkCache = incomingChunkStorage.getAASPChunkCache(
-                    this.uri, this.aaspStorage.getOldestEra(), this.aaspStorage.getEra());
-
-            this.makanCaches.add(new MakanMessageCache(sender, aaspChunkCacheLocal));
+        if(chronologically != this.makanMessageCacheChronologically) {
+            // internal cache is organized in wrong direction, drop it
+            this.makanMessageCache = null;
         }
+
+        // remember direction
+        this.makanMessageCacheChronologically = chronologically;
+
+        // makan message still not empty?
+        if(this.makanMessageCache != null) {
+            // message already in cache?
+            int effectivePosition = position - this.makanMessageCacheIndexOffset;
+            if(effectivePosition >= 0
+                    && effectivePosition < this.makanMessageCache.size()) {
+                return this.makanMessageCache.get(effectivePosition);
+            }
+        }
+
+        // clear and reset message cache
+        this.makanMessageCache = new ArrayList<>();
+        this.makanMessageCacheIndexOffset = 0;
+
+        // initialize aasp cache decorator
+        this.localMakanChunkCache.init(position, chronologically);
+        for(MakanAASPChunkCacheDecorator r : this.remoteMakanChunkCacheList) {
+            r.init(0, chronologically);
+        }
+
+        int currentPosition = 0;
+        boolean fillingCache = false;
+
+        do {
+            int topIndex = -1;
+            int currentIndex = -1;
+            MakanMessage topMessage = null;
+            try {
+                topMessage = this.localMakanChunkCache.getCurrentMessage();
+            }
+            catch(MakanException e) {
+                // no message, go ahead
+            }
+
+            for(MakanAASPChunkCacheDecorator r : this.remoteMakanChunkCacheList) {
+                currentIndex++;
+                MakanMessage currentMessage = null;
+                try {
+                     currentMessage = r.getCurrentMessage();
+                }
+                catch(MakanException e) {
+                    // no message, go ahead
+                }
+
+                if(topMessage == null) {
+                    topMessage = currentMessage;
+                } else {
+                    boolean currentOlderThanTop =
+                            currentMessage.getSentDate().before(topMessage.getSentDate());
+
+                    if (currentOlderThanTop && chronologically) {
+                        // current message is older than top message and we go chronologically - replace
+                        topIndex = currentIndex;
+                        topMessage = currentMessage;
+                    }
+
+                    if (!currentOlderThanTop && !chronologically) {
+                        // currentMessage is newer and we go backward in time - replace
+                        topIndex = currentIndex;
+                        topMessage = currentMessage;
+                    }
+                }
+            }
+
+            if(topMessage == null) {
+                // no messages at all, stop all attempts to find one
+                break;
+            }
+
+            // we have got our top message - remember that
+            if(topIndex == -1) {
+                this.localMakanChunkCache.increment();
+            } else {
+                this.remoteMakanChunkCacheList.get(topIndex).increment();
+            }
+
+            // filling cache?
+            if(fillingCache) {
+                this.makanMessageCache.add(topMessage);
+            } else {
+                if(position - currentIndex < this.makanMaxCacheSize / 2) {
+                    fillingCache = true;
+                    this.makanMessageCacheIndexOffset = currentIndex;
+                    this.makanMessageCache.add(topMessage);
+                }
+            }
+        } while(this.makanMessageCache.size() <= this.makanMaxCacheSize);
+
+        if(position-this.makanMessageCacheIndexOffset > this.makanMessageCache.size()-1) {
+            throw new MakanException("index to high");
+        }
+
+        return this.makanMessageCache.get(position-this.makanMessageCacheIndexOffset);
     }
 
-    public void addMessage(CharSequence contentAsCharacter) throws IOException {
+    @Override
+    public void addMessage(CharSequence contentAsCharacter)
+            throws MakanException, IOException {
+
         InMemoMakanMessage newMessage =
                 new InMemoMakanMessage(this.owner.getID(), contentAsCharacter, new Date());
 
-        // current er
+        // simply add this message to the local chunk storage
         AASPChunkStorage chunkStorage = this.aaspStorage.getChunkStorage();
         AASPChunk chunk = chunkStorage.getChunk(this.uri,
                 this.aaspStorage.getEra());
@@ -84,11 +181,40 @@ abstract class MakanAASPWrapper implements Makan {
 
         chunk.add(newMessage.getSerializedMessage());
 
-        this.sync();
+        // sync local makan wrapper
+        this.syncLocalMakanCache();
     }
+
+    private void syncLocalMakanCache() throws IOException {
+        // get local chunk storages
+        AASPChunkCache aaspChunkCacheLocal =
+                this.aaspStorage.getChunkStorage().getAASPChunkCache(
+                        this.uri,
+                        this.aaspStorage.getOldestEra(),
+                        this.aaspStorage.getEra());
+
+        this.localMakanChunkCache = new MakanAASPChunkCacheDecorator(this.owner.getName(), aaspChunkCacheLocal);
+
+
+    }
+
+    private void syncRemoteMakanCaches() throws IOException {
+        // create remote makan caches
+        this.remoteMakanChunkCacheList = new ArrayList<>();
+        // find storages from remote
+        for(CharSequence sender : this.aaspStorage.getSender()) {
+            AASPChunkStorage incomingChunkStorage = this.aaspStorage.getIncomingChunkStorage(sender);
+            AASPChunkCache aaspChunkCache = incomingChunkStorage.getAASPChunkCache(
+                    this.uri, this.aaspStorage.getOldestEra(), this.aaspStorage.getEra());
+
+            this.remoteMakanChunkCacheList.add(new MakanAASPChunkCacheDecorator(sender, aaspChunkCache));
+        }
+    }
+
 
     @Override
     public void sync() throws IOException {
-        this.initAASPChunkCaches();
+        this.syncLocalMakanCache();
+        this.syncRemoteMakanCaches();
     }
 }

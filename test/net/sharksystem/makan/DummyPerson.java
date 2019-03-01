@@ -1,6 +1,8 @@
-package identity;
+package net.sharksystem.makan;
 
-class DummyPerson implements Person {
+import identity.Person;
+
+public class DummyPerson implements Person {
 
     private final CharSequence nameAndID;
 
