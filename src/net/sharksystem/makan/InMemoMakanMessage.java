@@ -85,6 +85,6 @@ class InMemoMakanMessage implements MakanMessage {
 
     @Override
     public Date getSentDate() throws MakanException {
-        return this.getSentDate();
+        return this.sentDate;
     }
 }

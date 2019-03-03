@@ -54,14 +54,17 @@ abstract class MakanAASPWrapper implements Makan {
     }
 
     private boolean isInitialized() {
-        return this.localMakanChunkCache != null;
+        return (
+                this.localMakanChunkCache != null
+                && this.remoteMakanChunkCacheList != null);
     }
 
     @Override
     public MakanMessage getMessage(int position, boolean chronologically)
             throws MakanException, IOException {
 
-        if(!this.isInitialized()) { this.sync(); }
+        if(this.localMakanChunkCache == null) this.syncLocalMakanCache();
+        if(this.remoteMakanChunkCacheList == null) this.syncRemoteMakanCaches();
 
         if(chronologically != this.makanMessageCacheChronologically) {
             // internal cache is organized in wrong direction, drop it
@@ -117,7 +120,8 @@ abstract class MakanAASPWrapper implements Makan {
 
                 if(topMessage == null) {
                     topMessage = currentMessage;
-                } else {
+                    topIndex = currentIndex;
+                } else if(currentMessage != null) {
                     boolean currentOlderThanTop =
                             currentMessage.getSentDate().before(topMessage.getSentDate());
 
@@ -167,11 +171,15 @@ abstract class MakanAASPWrapper implements Makan {
     }
 
     @Override
-    public void addMessage(CharSequence contentAsCharacter)
+    public void addMessage(CharSequence contentAsCharacter) throws IOException, MakanException {
+        this.addMessage(contentAsCharacter, new Date());
+    }
+
+    public void addMessage(CharSequence contentAsCharacter, Date sentDate)
             throws MakanException, IOException {
 
         InMemoMakanMessage newMessage =
-                new InMemoMakanMessage(this.owner.getID(), contentAsCharacter, new Date());
+                new InMemoMakanMessage(this.owner.getID(), contentAsCharacter, sentDate);
 
         // simply add this message to the local chunk storage
         AASPChunkStorage chunkStorage = this.aaspStorage.getChunkStorage();
@@ -190,7 +198,6 @@ abstract class MakanAASPWrapper implements Makan {
         AASPChunkCache aaspChunkCacheLocal =
                 this.aaspStorage.getChunkStorage().getAASPChunkCache(
                         this.uri,
-                        this.aaspStorage.getOldestEra(),
                         this.aaspStorage.getEra());
 
         this.localMakanChunkCache = new MakanAASPChunkCacheDecorator(this.owner.getName(), aaspChunkCacheLocal);
@@ -205,7 +212,7 @@ abstract class MakanAASPWrapper implements Makan {
         for(CharSequence sender : this.aaspStorage.getSender()) {
             AASPChunkStorage incomingChunkStorage = this.aaspStorage.getIncomingChunkStorage(sender);
             AASPChunkCache aaspChunkCache = incomingChunkStorage.getAASPChunkCache(
-                    this.uri, this.aaspStorage.getOldestEra(), this.aaspStorage.getEra());
+                    this.uri, this.aaspStorage.getEra());
 
             this.remoteMakanChunkCacheList.add(new MakanAASPChunkCacheDecorator(sender, aaspChunkCache));
         }

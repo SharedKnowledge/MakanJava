@@ -13,6 +13,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.Date;
 
 public class SimpleTests {
     public static final String ALICE_BOB_CHAT_URL = "content://aliceAndBob.talk";
@@ -25,7 +28,7 @@ public class SimpleTests {
     public static final String BOB2ALICE_MESSAGE = "Hi Alice";
 
     @Test
-    public void scenario1() throws IOException, AASPException, InterruptedException, MakanException {
+    public void scenario1() throws IOException, AASPException, InterruptedException, MakanException, ParseException {
 
         AASPEngineFS.removeFolder(ALICE_FOLDER); // clean previous version before
         AASPEngineFS.removeFolder(BOB_FOLDER); // clean previous version before
@@ -35,11 +38,14 @@ public class SimpleTests {
                 AASPEngineFS.getAASPChunkStorage(ALICE_FOLDER);
 
 
-        Makan aliceMakan = new MakanDummy(ALICE_BOB_MAKAN_NAME, ALICE_BOB_CHAT_URL, aliceStorage,
+        MakanDummy aliceMakan = new MakanDummy(ALICE_BOB_MAKAN_NAME, ALICE_BOB_CHAT_URL, aliceStorage,
                 new DummyPerson(ALICE), new DummyIdentityStorage());
 
         // write a message into makan
-        aliceMakan.addMessage(ALICE2BOB_MESSAGE);
+        // fake sent date
+        Date aliceSentDate = DateFormat.getInstance().parse("11.09.01 11:45");
+
+        aliceMakan.addMessage(ALICE2BOB_MESSAGE, aliceSentDate);
 
         // bob does the same
         AASPStorage bobStorage =
@@ -87,7 +93,7 @@ public class SimpleTests {
                 bobChannel.getOutputStream(), bobListener);
 
         // wait until communication probably ends
-        Thread.sleep(10000);
+        Thread.sleep(5000);
 
         // close connections: note AASPEngine does NOT close any connection!!
         aliceChannel.close();
@@ -102,10 +108,18 @@ public class SimpleTests {
 
         /////////////// check on makan abstraction layer ///////////////
 
+        // simulate sync
+        bobStorage = AASPEngineFS.getAASPChunkStorage(BOB_FOLDER);
+        bobMakan = new MakanDummy(
+                ALICE_BOB_MAKAN_NAME,
+                ALICE_BOB_CHAT_URL,
+                bobStorage,
+                new DummyPerson(BOB), new DummyIdentityStorage());
+
         MakanMessage makanMessage = bobMakan.getMessage(0, true);
-        Assert.assertEquals(makanMessage.getContentAsString(), ALICE2BOB_MESSAGE);
+        Assert.assertEquals(ALICE2BOB_MESSAGE, makanMessage.getContentAsString());
 
         makanMessage = bobMakan.getMessage(1, true);
-        Assert.assertEquals(makanMessage.getContentAsString(), BOB2ALICE_MESSAGE);
+        Assert.assertEquals(BOB2ALICE_MESSAGE, makanMessage.getContentAsString());
     }
 }
