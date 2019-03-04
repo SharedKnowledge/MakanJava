@@ -48,4 +48,6 @@ public interface Makan {
 
     void addMessage(CharSequence contentAsCharacter)
             throws MakanException, IOException;
+
+    int size() throws IOException;
 }

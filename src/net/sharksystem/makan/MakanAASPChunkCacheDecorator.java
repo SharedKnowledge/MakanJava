@@ -44,4 +44,8 @@ class MakanAASPChunkCacheDecorator {
         this.lastPosition = position;
         this.lastChronologically = chronologically;
     }
+
+    public int size() {
+        return this.aaspChunkStorage.size();
+    }
 }

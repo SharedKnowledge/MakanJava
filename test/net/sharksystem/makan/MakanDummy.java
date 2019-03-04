@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-class MakanDummy extends  MakanAASPWrapper {
+class MakanDummy extends MakanAASPWrapper {
 
     MakanDummy(CharSequence userFriendlyName, CharSequence uri, AASPStorage aaspStorage,
                      Person owner, IdentityStorage identityStorage) throws IOException {

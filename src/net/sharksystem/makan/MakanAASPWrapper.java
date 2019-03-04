@@ -33,6 +33,7 @@ abstract class MakanAASPWrapper implements Makan {
     private boolean makanMessageCacheChronologically;
 
 
+    private int remoteMessageNumber = 0;
 
     MakanAASPWrapper(CharSequence userFriendlyName, CharSequence uri, AASPStorage aaspStorage,
                      Person owner, IdentityStorage identityStorage) throws IOException {
@@ -206,13 +207,20 @@ abstract class MakanAASPWrapper implements Makan {
     }
 
     private void syncRemoteMakanCaches() throws IOException {
+
         // create remote makan caches
         this.remoteMakanChunkCacheList = new ArrayList<>();
+
+        // reset message counter
+        this.remoteMessageNumber = 0;
+
         // find storages from remote
         for(CharSequence sender : this.aaspStorage.getSender()) {
             AASPChunkStorage incomingChunkStorage = this.aaspStorage.getIncomingChunkStorage(sender);
             AASPChunkCache aaspChunkCache = incomingChunkStorage.getAASPChunkCache(
                     this.uri, this.aaspStorage.getEra());
+
+            this.remoteMessageNumber += aaspChunkCache.size();
 
             this.remoteMakanChunkCacheList.add(new MakanAASPChunkCacheDecorator(sender, aaspChunkCache));
         }
@@ -223,5 +231,13 @@ abstract class MakanAASPWrapper implements Makan {
     public void sync() throws IOException {
         this.syncLocalMakanCache();
         this.syncRemoteMakanCaches();
+    }
+
+    public int size() throws IOException {
+        if(!this.isInitialized()) {
+            this.sync();
+        }
+
+        return this.localMakanChunkCache.size() + this.remoteMessageNumber;
     }
 }
