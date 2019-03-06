@@ -1,9 +1,9 @@
 package net.sharksystem.makan;
 
 public class MakanException extends Exception {
-    MakanException() { super();}
+    public MakanException() { super();}
 
-    MakanException(String message) { super(message);}
+    public MakanException(String message) { super(message);}
 
-    MakanException(Exception e) { super(e);}
+    public MakanException(Exception e) { super(e);}
 }

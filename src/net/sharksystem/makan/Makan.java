@@ -50,4 +50,5 @@ public interface Makan {
             throws MakanException, IOException;
 
     int size() throws IOException;
+
 }

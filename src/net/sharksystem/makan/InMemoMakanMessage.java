@@ -6,7 +6,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.StringTokenizer;
 
-class InMemoMakanMessage implements MakanMessage {
+public class InMemoMakanMessage implements MakanMessage {
 
     private static final String DELIMITER = "||||";
     private CharSequence senderID;
@@ -14,7 +14,7 @@ class InMemoMakanMessage implements MakanMessage {
     private Date sentDate;
     private CharSequence serializedMessage;
 
-    InMemoMakanMessage(CharSequence senderID, CharSequence contentASString, Date sentDate) {
+    public InMemoMakanMessage(CharSequence senderID, CharSequence contentASString, Date sentDate) {
         this.senderID = senderID;
         this.contentASString = contentASString;
         this.sentDate = sentDate;
@@ -28,7 +28,7 @@ class InMemoMakanMessage implements MakanMessage {
         this.serializedMessage = aaspMessage;
     }
 
-    CharSequence getSerializedMessage() {
+    public CharSequence getSerializedMessage() {
         if(this.serializedMessage == null) {
             this.serializedMessage = this.serializeMessage();
         }
