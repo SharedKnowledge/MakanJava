@@ -34,6 +34,8 @@ abstract class MakanAASPWrapper implements Makan {
 
 
     private int remoteMessageNumber = 0;
+    private boolean remoteSynced = false;
+    private boolean localSynced = false;
 
     MakanAASPWrapper(CharSequence userFriendlyName, CharSequence uri, AASPStorage aaspStorage,
                      Person owner, IdentityStorage identityStorage) throws IOException {
@@ -54,10 +56,8 @@ abstract class MakanAASPWrapper implements Makan {
         return this.uri;
     }
 
-    private boolean isInitialized() {
-        return (
-                this.localMakanChunkCache != null
-                && this.remoteMakanChunkCacheList != null);
+    private boolean isSynced() {
+        return this.localSynced && this.remoteSynced;
     }
 
     @Override
@@ -174,6 +174,8 @@ abstract class MakanAASPWrapper implements Makan {
     @Override
     public void addMessage(CharSequence contentAsCharacter) throws IOException, MakanException {
         this.addMessage(contentAsCharacter, new Date());
+
+        this.localSynced = false;
     }
 
     public void addMessage(CharSequence contentAsCharacter, Date sentDate)
@@ -190,8 +192,8 @@ abstract class MakanAASPWrapper implements Makan {
 
         chunk.add(newMessage.getSerializedMessage());
 
-        // sync local makan wrapper
-        this.syncLocalMakanCache();
+        // mark unsynced
+        this.localSynced = false;
     }
 
     private void syncLocalMakanCache() throws IOException {
@@ -203,7 +205,7 @@ abstract class MakanAASPWrapper implements Makan {
 
         this.localMakanChunkCache = new MakanAASPChunkCacheDecorator(this.owner.getName(), aaspChunkCacheLocal);
 
-
+        this.localSynced = true;
     }
 
     private void syncRemoteMakanCaches() throws IOException {
@@ -224,17 +226,22 @@ abstract class MakanAASPWrapper implements Makan {
 
             this.remoteMakanChunkCacheList.add(new MakanAASPChunkCacheDecorator(sender, aaspChunkCache));
         }
+
+        this.remoteSynced = true;
     }
 
 
     @Override
     public void sync() throws IOException {
-        this.syncLocalMakanCache();
-        this.syncRemoteMakanCaches();
+        if(!this.localSynced)
+            this.syncLocalMakanCache();
+
+        if(!this.remoteSynced)
+            this.syncRemoteMakanCaches();
     }
 
     public int size() throws IOException {
-        if(!this.isInitialized()) {
+        if(!this.isSynced()) {
             this.sync();
         }
 
