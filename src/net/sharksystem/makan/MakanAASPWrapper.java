@@ -99,8 +99,8 @@ abstract class MakanAASPWrapper implements Makan {
         boolean fillingCache = false;
 
         do {
-            int topIndex = -1;
-            int currentIndex = -1;
+            int topChunkCacheNumber = -1;
+            int currentChunkCacheNumber = -1;
             MakanMessage topMessage = null;
             try {
                 topMessage = this.localMakanChunkCache.getCurrentMessage();
@@ -110,7 +110,7 @@ abstract class MakanAASPWrapper implements Makan {
             }
 
             for(MakanAASPChunkCacheDecorator r : this.remoteMakanChunkCacheList) {
-                currentIndex++;
+                currentChunkCacheNumber++;
                 MakanMessage currentMessage = null;
                 try {
                      currentMessage = r.getCurrentMessage();
@@ -121,20 +121,20 @@ abstract class MakanAASPWrapper implements Makan {
 
                 if(topMessage == null) {
                     topMessage = currentMessage;
-                    topIndex = currentIndex;
+                    topChunkCacheNumber = currentChunkCacheNumber;
                 } else if(currentMessage != null) {
                     boolean currentOlderThanTop =
                             currentMessage.getSentDate().before(topMessage.getSentDate());
 
                     if (currentOlderThanTop && chronologically) {
                         // current message is older than top message and we go chronologically - replace
-                        topIndex = currentIndex;
+                        topChunkCacheNumber = currentChunkCacheNumber;
                         topMessage = currentMessage;
                     }
 
                     if (!currentOlderThanTop && !chronologically) {
                         // currentMessage is newer and we go backward in time - replace
-                        topIndex = currentIndex;
+                        topChunkCacheNumber = currentChunkCacheNumber;
                         topMessage = currentMessage;
                     }
                 }
@@ -146,20 +146,22 @@ abstract class MakanAASPWrapper implements Makan {
             }
 
             // we have got our top message - remember that
-            if(topIndex == -1) {
+            if(topChunkCacheNumber == -1) {
                 this.localMakanChunkCache.increment();
             } else {
-                this.remoteMakanChunkCacheList.get(topIndex).increment();
+                this.remoteMakanChunkCacheList.get(topChunkCacheNumber).increment();
             }
 
             // filling cache?
             if(fillingCache) {
                 this.makanMessageCache.add(topMessage);
             } else {
-                if(position - currentIndex < this.makanMaxCacheSize / 2) {
+                if(position - currentChunkCacheNumber < this.makanMaxCacheSize / 2) {
                     fillingCache = true;
-                    this.makanMessageCacheIndexOffset = currentIndex;
                     this.makanMessageCache.add(topMessage);
+                } else {
+                    // no caching yet - count up cache index
+                    this.makanMessageCacheIndexOffset++;
                 }
             }
         } while(this.makanMessageCache.size() <= this.makanMaxCacheSize);
@@ -203,7 +205,7 @@ abstract class MakanAASPWrapper implements Makan {
                         this.uri,
                         this.aaspStorage.getEra());
 
-        this.localMakanChunkCache = new MakanAASPChunkCacheDecorator(this.owner.getName(), aaspChunkCacheLocal);
+        this.localMakanChunkCache = new MakanAASPChunkCacheDecorator(aaspChunkCacheLocal);
 
         this.localSynced = true;
     }
@@ -224,7 +226,7 @@ abstract class MakanAASPWrapper implements Makan {
 
             this.remoteMessageNumber += aaspChunkCache.size();
 
-            this.remoteMakanChunkCacheList.add(new MakanAASPChunkCacheDecorator(sender, aaspChunkCache));
+            this.remoteMakanChunkCacheList.add(new MakanAASPChunkCacheDecorator(aaspChunkCache));
         }
 
         this.remoteSynced = true;

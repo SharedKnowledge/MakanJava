@@ -20,11 +20,10 @@ public class InMemoMakanMessage implements MakanMessage {
         this.sentDate = sentDate;
     }
 
-    InMemoMakanMessage(CharSequence sender, CharSequence aaspMessage) throws MakanException {
+    InMemoMakanMessage(CharSequence aaspMessage) throws MakanException {
         this.deserializeMessage(aaspMessage); // throws exception if malformed
 
         // not malformed - set rest of it
-        this.senderID = sender;
         this.serializedMessage = aaspMessage;
     }
 
@@ -39,12 +38,20 @@ public class InMemoMakanMessage implements MakanMessage {
     private CharSequence serializeMessage() {
         DateFormat df = DateFormat.getInstance();
 
-        return df.format(this.sentDate) + DELIMITER + this.contentASString;
+        return this.senderID + DELIMITER
+                + df.format(this.sentDate) + DELIMITER
+                + this.contentASString;
     }
 
     private void deserializeMessage(CharSequence message) throws MakanException {
         // parse aaspMessage
         StringTokenizer st = new StringTokenizer(message.toString(), DELIMITER);
+        if(!st.hasMoreTokens()) {
+            throw new MakanException("malformed Makan Message in AASP message");
+        }
+
+        this.senderID = st.nextToken();
+
         if(!st.hasMoreTokens()) {
             throw new MakanException("malformed Makan Message in AASP message");
         }

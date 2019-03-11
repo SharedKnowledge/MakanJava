@@ -7,13 +7,11 @@ import net.sharksystem.aasp.AASPException;
 import java.io.IOException;
 
 class MakanAASPChunkCacheDecorator {
-    private final CharSequence ownerName;
     private final AASPChunkCache aaspChunkStorage;
     private int lastPosition;
     private boolean lastChronologically;
 
-    MakanAASPChunkCacheDecorator(CharSequence ownerName, AASPChunkCache aaspChunkCacheLocal) {
-        this.ownerName = ownerName;
+    MakanAASPChunkCacheDecorator(AASPChunkCache aaspChunkCacheLocal) {
         this.aaspChunkStorage = aaspChunkCacheLocal;
     }
 
@@ -25,7 +23,7 @@ class MakanAASPChunkCacheDecorator {
 
         try {
             CharSequence aaspMessage = this.aaspChunkStorage.getMessage(position, chronologically);
-            return new InMemoMakanMessage(this.ownerName, aaspMessage);
+            return new InMemoMakanMessage(aaspMessage);
         }
         catch(AASPException e) {
             throw new MakanException(e);
@@ -45,7 +43,7 @@ class MakanAASPChunkCacheDecorator {
         this.lastChronologically = chronologically;
     }
 
-    public int size() {
+    public int size() throws IOException {
         return this.aaspChunkStorage.size();
     }
 }
