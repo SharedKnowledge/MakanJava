@@ -2,15 +2,14 @@ package net.sharksystem.makan;
 
 import identity.IdentityStorage;
 import identity.Person;
-import net.sharksystem.aasp.AASPStorage;
+import net.sharksystem.asap.ASAPStorage;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 
 class MakanDummy extends MakanAASPWrapper {
 
-    MakanDummy(CharSequence userFriendlyName, CharSequence uri, AASPStorage aaspStorage,
+    MakanDummy(CharSequence userFriendlyName, CharSequence uri, ASAPStorage aaspStorage,
                      Person owner, IdentityStorage identityStorage) throws IOException {
 
         super(userFriendlyName, uri, aaspStorage, owner, identityStorage);

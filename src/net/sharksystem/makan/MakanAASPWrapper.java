@@ -2,10 +2,10 @@ package net.sharksystem.makan;
 
 import identity.IdentityStorage;
 import identity.Person;
-import net.sharksystem.aasp.AASPChunk;
-import net.sharksystem.aasp.AASPChunkCache;
-import net.sharksystem.aasp.AASPChunkStorage;
-import net.sharksystem.aasp.AASPStorage;
+import net.sharksystem.asap.ASAPChunk;
+import net.sharksystem.asap.ASAPChunkCache;
+import net.sharksystem.asap.ASAPChunkStorage;
+import net.sharksystem.asap.ASAPStorage;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import java.util.List;
 abstract class MakanAASPWrapper implements Makan {
     private final CharSequence userFriendlyName;
     private final CharSequence uri;
-    private final AASPStorage aaspStorage;
+    private final ASAPStorage aaspStorage;
     private final IdentityStorage identityStorage;
     private final Person owner;
     private List<MakanAASPChunkCacheDecorator> remoteMakanChunkCacheList = null;
@@ -37,7 +37,7 @@ abstract class MakanAASPWrapper implements Makan {
     private boolean remoteSynced = false;
     private boolean localSynced = false;
 
-    MakanAASPWrapper(CharSequence userFriendlyName, CharSequence uri, AASPStorage aaspStorage,
+    MakanAASPWrapper(CharSequence userFriendlyName, CharSequence uri, ASAPStorage aaspStorage,
                      Person owner, IdentityStorage identityStorage) throws IOException {
         this.userFriendlyName = userFriendlyName;
         this.uri = uri;
@@ -187,8 +187,8 @@ abstract class MakanAASPWrapper implements Makan {
                 new InMemoMakanMessage(this.owner.getID(), contentAsCharacter, sentDate);
 
         // simply add this message to the local chunk storage
-        AASPChunkStorage chunkStorage = this.aaspStorage.getChunkStorage();
-        AASPChunk chunk = chunkStorage.getChunk(this.uri,
+        ASAPChunkStorage chunkStorage = this.aaspStorage.getChunkStorage();
+        ASAPChunk chunk = chunkStorage.getChunk(this.uri,
                 this.aaspStorage.getEra());
 
 
@@ -200,8 +200,8 @@ abstract class MakanAASPWrapper implements Makan {
 
     private void syncLocalMakanCache() throws IOException {
         // get local chunk storages
-        AASPChunkCache aaspChunkCacheLocal =
-                this.aaspStorage.getChunkStorage().getAASPChunkCache(
+        ASAPChunkCache aaspChunkCacheLocal =
+                this.aaspStorage.getChunkStorage().getASAPChunkCache(
                         this.uri,
                         this.aaspStorage.getEra());
 
@@ -220,13 +220,13 @@ abstract class MakanAASPWrapper implements Makan {
 
         // find storages from remote
         for(CharSequence sender : this.aaspStorage.getSender()) {
-            AASPChunkStorage incomingChunkStorage = this.aaspStorage.getIncomingChunkStorage(sender);
-            AASPChunkCache aaspChunkCache = incomingChunkStorage.getAASPChunkCache(
+            ASAPChunkStorage incomingChunkStorage = this.aaspStorage.getIncomingChunkStorage(sender);
+            ASAPChunkCache asapChunkCache = incomingChunkStorage.getASAPChunkCache(
                     this.uri, this.aaspStorage.getEra());
 
-            this.remoteMessageNumber += aaspChunkCache.size();
+            this.remoteMessageNumber += asapChunkCache.size();
 
-            this.remoteMakanChunkCacheList.add(new MakanAASPChunkCacheDecorator(aaspChunkCache));
+            this.remoteMakanChunkCacheList.add(new MakanAASPChunkCacheDecorator(asapChunkCache));
         }
 
         this.remoteSynced = true;

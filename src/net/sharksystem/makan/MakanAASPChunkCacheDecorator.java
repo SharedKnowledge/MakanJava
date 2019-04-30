@@ -1,17 +1,16 @@
 package net.sharksystem.makan;
 
-import identity.Person;
-import net.sharksystem.aasp.AASPChunkCache;
-import net.sharksystem.aasp.AASPException;
+import net.sharksystem.asap.ASAPChunkCache;
+import net.sharksystem.asap.ASAPException;
 
 import java.io.IOException;
 
 class MakanAASPChunkCacheDecorator {
-    private final AASPChunkCache aaspChunkStorage;
+    private final ASAPChunkCache aaspChunkStorage;
     private int lastPosition;
     private boolean lastChronologically;
 
-    MakanAASPChunkCacheDecorator(AASPChunkCache aaspChunkCacheLocal) {
+    MakanAASPChunkCacheDecorator(ASAPChunkCache aaspChunkCacheLocal) {
         this.aaspChunkStorage = aaspChunkCacheLocal;
     }
 
@@ -25,7 +24,7 @@ class MakanAASPChunkCacheDecorator {
             CharSequence aaspMessage = this.aaspChunkStorage.getMessage(position, chronologically);
             return new InMemoMakanMessage(aaspMessage);
         }
-        catch(AASPException e) {
+        catch(ASAPException e) {
             throw new MakanException(e);
         }
     }

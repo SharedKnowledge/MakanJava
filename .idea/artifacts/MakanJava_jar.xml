@@ -3,7 +3,7 @@
     <output-path>$PROJECT_DIR$/out/</output-path>
     <root id="archive" name="MakanJava.jar">
       <element id="module-output" name="MakanJava" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/AASP_Engine_0.3.0.jar" path-in-jar="/" />
+      <element id="artifact" artifact-name="ASAP_Engine_0_4_0_jar_" />
     </root>
   </artifact>
 </component>
