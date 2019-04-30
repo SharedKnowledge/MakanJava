@@ -7,7 +7,7 @@ import net.sharksystem.asap.ASAPStorage;
 import java.io.IOException;
 import java.util.List;
 
-class MakanDummy extends MakanAASPWrapper {
+class MakanDummy extends MakanASAPWrapper {
 
     MakanDummy(CharSequence userFriendlyName, CharSequence uri, ASAPStorage aaspStorage,
                      Person owner, IdentityStorage identityStorage) throws IOException {

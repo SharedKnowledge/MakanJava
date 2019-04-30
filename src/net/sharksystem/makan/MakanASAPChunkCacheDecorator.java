@@ -5,12 +5,12 @@ import net.sharksystem.asap.ASAPException;
 
 import java.io.IOException;
 
-class MakanAASPChunkCacheDecorator {
+class MakanASAPChunkCacheDecorator {
     private final ASAPChunkCache aaspChunkStorage;
     private int lastPosition;
     private boolean lastChronologically;
 
-    MakanAASPChunkCacheDecorator(ASAPChunkCache aaspChunkCacheLocal) {
+    MakanASAPChunkCacheDecorator(ASAPChunkCache aaspChunkCacheLocal) {
         this.aaspChunkStorage = aaspChunkCacheLocal;
     }
 
