@@ -19,8 +19,8 @@ import java.util.Date;
 public class SimpleTests {
     public static final String ALICE_BOB_CHAT_URL = "content://aliceAndBob.talk";
     public static final String ALICE_BOB_MAKAN_NAME = "Alice and Bob talk";
-    public static final String ALICE_FOLDER = "alice";
-    public static final String BOB_FOLDER = "bob";
+    public static final String ALICE_FOLDER = "tests/alice";
+    public static final String BOB_FOLDER = "tests/bob";
     public static final String ALICE = "alice";
     public static final String BOB = "bob";
     public static final String ALICE2BOB_MESSAGE = "Hi Bob";
@@ -34,10 +34,10 @@ public class SimpleTests {
 
         // alice writes a message into chunkStorage
         ASAPStorage aliceStorage =
-                ASAPEngineFS.getASAPStorage(ALICE_FOLDER);
+                ASAPEngineFS.getASAPStorage(ALICE, ALICE_FOLDER, Makan.MAKAN_FORMAT);
 
 
-        MakanDummy aliceMakan = new MakanDummy(ALICE_BOB_MAKAN_NAME, ALICE_BOB_CHAT_URL, aliceStorage,
+        MakanDummyChunkStorage aliceMakan = new MakanDummyChunkStorage(ALICE_BOB_MAKAN_NAME, ALICE_BOB_CHAT_URL, aliceStorage,
                 new DummyPerson(ALICE), new DummyIdentityStorage());
 
         // write a message into makan
@@ -48,9 +48,9 @@ public class SimpleTests {
 
         // bob does the same
         ASAPStorage bobStorage =
-                ASAPEngineFS.getASAPStorage(BOB_FOLDER);
+                ASAPEngineFS.getASAPStorage(BOB, BOB_FOLDER, Makan.MAKAN_FORMAT);
 
-        Makan bobMakan = new MakanDummy(ALICE_BOB_MAKAN_NAME, ALICE_BOB_CHAT_URL, bobStorage,
+        Makan bobMakan = new MakanDummyChunkStorage(ALICE_BOB_MAKAN_NAME, ALICE_BOB_CHAT_URL, bobStorage,
                 new DummyPerson(BOB), new DummyIdentityStorage());
 
         // wait a second - just to ensure another date entry.
@@ -61,9 +61,9 @@ public class SimpleTests {
         ////////////// perform AASP exchange ///////////////////
 
         // now set up both engines / use default reader
-        ASAPEngine aliceEngine = ASAPEngineFS.getASAPEngine("Alice", ALICE_FOLDER);
+        ASAPEngine aliceEngine = ASAPEngineFS.getASAPEngine("Alice", ALICE_FOLDER, Makan.MAKAN_FORMAT);
 
-        ASAPEngine bobEngine = ASAPEngineFS.getASAPEngine("Bob", BOB_FOLDER);
+        ASAPEngine bobEngine = ASAPEngineFS.getASAPEngine("Bob", BOB_FOLDER, Makan.MAKAN_FORMAT);
 
         ASAPChunkReceiverTester aliceListener = new ASAPChunkReceiverTester();
         ASAPChunkReceiverTester bobListener = new ASAPChunkReceiverTester();
@@ -108,8 +108,8 @@ public class SimpleTests {
         /////////////// check on makan abstraction layer ///////////////
 
         // simulate sync
-        bobStorage = ASAPEngineFS.getASAPStorage(BOB_FOLDER);
-        bobMakan = new MakanDummy(
+        bobStorage = ASAPEngineFS.getASAPStorage(BOB, BOB_FOLDER, Makan.MAKAN_FORMAT);
+        bobMakan = new MakanDummyChunkStorage(
                 ALICE_BOB_MAKAN_NAME,
                 ALICE_BOB_CHAT_URL,
                 bobStorage,

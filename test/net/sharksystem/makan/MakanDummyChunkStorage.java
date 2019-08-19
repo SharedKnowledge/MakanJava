@@ -7,10 +7,10 @@ import net.sharksystem.asap.ASAPStorage;
 import java.io.IOException;
 import java.util.List;
 
-class MakanDummy extends MakanASAPWrapper {
+class MakanDummyChunkStorage extends MakanASAPChunkStorageWrapper {
 
-    MakanDummy(CharSequence userFriendlyName, CharSequence uri, ASAPStorage aaspStorage,
-                     Person owner, IdentityStorage identityStorage) throws IOException {
+    MakanDummyChunkStorage(CharSequence userFriendlyName, CharSequence uri, ASAPStorage aaspStorage,
+                           Person owner, IdentityStorage identityStorage) throws IOException {
 
         super(userFriendlyName, uri, aaspStorage, owner, identityStorage);
     }

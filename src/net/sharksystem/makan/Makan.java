@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 
 public interface Makan {
+    CharSequence MAKAN_FORMAT = "makan";
+
     /**
      * Local name of this makan
      * @return

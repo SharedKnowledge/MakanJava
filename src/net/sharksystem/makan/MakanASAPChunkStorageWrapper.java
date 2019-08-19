@@ -13,11 +13,11 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Implements a makan solely based on an AASP Storage.
+ * Implements a makan solely based on an ASAP Storage.
  * user management is abstract and must be overwritten by derived
  * classes
  */
-abstract class MakanASAPWrapper implements Makan {
+abstract class MakanASAPChunkStorageWrapper implements Makan {
     private final CharSequence userFriendlyName;
     private final CharSequence uri;
     private final ASAPStorage aaspStorage;
@@ -37,8 +37,8 @@ abstract class MakanASAPWrapper implements Makan {
     private boolean remoteSynced = false;
     private boolean localSynced = false;
 
-    MakanASAPWrapper(CharSequence userFriendlyName, CharSequence uri, ASAPStorage aaspStorage,
-                     Person owner, IdentityStorage identityStorage) throws IOException {
+    MakanASAPChunkStorageWrapper(CharSequence userFriendlyName, CharSequence uri, ASAPStorage aaspStorage,
+                                 Person owner, IdentityStorage identityStorage) throws IOException {
         this.userFriendlyName = userFriendlyName;
         this.uri = uri;
         this.aaspStorage = aaspStorage;
@@ -192,7 +192,7 @@ abstract class MakanASAPWrapper implements Makan {
                 this.aaspStorage.getEra());
 
 
-        chunk.add(newMessage.getSerializedMessage());
+        chunk.addMessage(newMessage.getSerializedMessage());
 
         // mark unsynced
         this.localSynced = false;
