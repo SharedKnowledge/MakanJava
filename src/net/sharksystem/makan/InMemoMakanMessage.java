@@ -1,5 +1,7 @@
 package net.sharksystem.makan;
 
+import net.sharksystem.asap.ASAPException;
+
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -20,7 +22,7 @@ public class InMemoMakanMessage implements MakanMessage {
         this.sentDate = sentDate;
     }
 
-    InMemoMakanMessage(CharSequence aaspMessage) throws MakanException {
+    InMemoMakanMessage(CharSequence aaspMessage) throws ASAPException {
         this.deserializeMessage(aaspMessage); // throws exception if malformed
 
         // not malformed - set rest of it
@@ -43,23 +45,23 @@ public class InMemoMakanMessage implements MakanMessage {
                 + this.contentASString;
     }
 
-    private void deserializeMessage(CharSequence message) throws MakanException {
+    private void deserializeMessage(CharSequence message) throws ASAPException {
         // parse aaspMessage
         StringTokenizer st = new StringTokenizer(message.toString(), DELIMITER);
         if(!st.hasMoreTokens()) {
-            throw new MakanException("malformed Makan Message in AASP message");
+            throw new ASAPException("malformed Makan Message in AASP message");
         }
 
         this.senderID = st.nextToken();
 
         if(!st.hasMoreTokens()) {
-            throw new MakanException("malformed Makan Message in AASP message");
+            throw new ASAPException("malformed Makan Message in AASP message");
         }
 
         String dateString = st.nextToken();
 
         if(!st.hasMoreTokens()) {
-            throw new MakanException("malformed Makan Message in AASP message");
+            throw new ASAPException("malformed Makan Message in AASP message");
         }
 
         this.contentASString = st.nextToken();
@@ -70,28 +72,28 @@ public class InMemoMakanMessage implements MakanMessage {
         try {
             this.sentDate = df.parse(dateString);
         } catch (ParseException e) {
-            throw new MakanException("malformed date string in makan message: " +
+            throw new ASAPException("malformed date string in makan message: " +
                     e.getLocalizedMessage());
         }
     }
 
     @Override
-    public CharSequence getSenderID() throws MakanException {
+    public CharSequence getSenderID() {
         return this.senderID;
     }
 
     @Override
-    public byte[] getContent() throws MakanException {
-        throw new MakanException("not implemented yet");
+    public byte[] getContent() throws ASAPException {
+        throw new ASAPException("not implemented yet");
     }
 
     @Override
-    public CharSequence getContentAsString() throws MakanException, IOException {
+    public CharSequence getContentAsString() throws ASAPException, IOException {
         return this.contentASString;
     }
 
     @Override
-    public Date getSentDate() throws MakanException {
+    public Date getSentDate() {
         return this.sentDate;
     }
 }

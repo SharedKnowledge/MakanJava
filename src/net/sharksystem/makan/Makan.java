@@ -1,6 +1,6 @@
 package net.sharksystem.makan;
 
-import identity.Person;
+import net.sharksystem.asap.ASAPException;
 
 import java.io.IOException;
 import java.util.Date;
@@ -10,7 +10,7 @@ public interface Makan {
     CharSequence MAKAN_FORMAT = "makan";
 
     /**
-     * Local name of this makan
+     * user friendly name
      * @return
      */
     CharSequence getName() throws IOException;
@@ -22,35 +22,24 @@ public interface Makan {
     CharSequence getURI() throws IOException;
 
     /**
-     * Return member
+     * Return member ids
      */
-    List<Person> getMember() throws IOException;
+    List<CharSequence> getMemberIDs() throws IOException;
 
-    void addMember(Person person2add)  throws MakanException, IOException;
+    void addMember(CharSequence newMemberID)  throws ASAPException, IOException;
 
-    void removeMember(Person person2add)  throws MakanException, IOException;
+    void removeMember(CharSequence newMemberID)  throws ASAPException, IOException;
 
     /**
-     *
      * @return admin of this makan
      */
-    Person getAdmin() throws MakanException, IOException;
+    CharSequence getAdminID() throws ASAPException, IOException;
 
     MakanMessage getMessage(int position, boolean chronologically)
-            throws MakanException, IOException;
-
-    /**
-     * Sync with external memory. Depending on implementation, this method
-     * can even do nothing. After calling, messages and all other setting are
-     * in sync with external memory whatsoever.
-     *
-     * @throws IOException
-     */
-    void sync() throws IOException;
+            throws ASAPException, IOException;
 
     void addMessage(CharSequence contentAsCharacter)
-            throws MakanException, IOException;
+            throws ASAPException, IOException;
 
     int size() throws IOException;
-
 }

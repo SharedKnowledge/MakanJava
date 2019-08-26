@@ -4,8 +4,6 @@ import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPStorage;
-import net.sharksystem.asap.util.ASAPChunkReceiverTester;
-import net.sharksystem.asap.util.ASAPEngineThread;
 import net.sharksystem.util.localloop.TCPChannel;
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,7 +23,7 @@ public class SimpleTests {
     public static final String BOB = "bob";
     public static final String ALICE2BOB_MESSAGE = "Hi Bob";
     public static final String BOB2ALICE_MESSAGE = "Hi Alice";
-
+/*
     @Test
     public void scenario1() throws IOException, ASAPException, InterruptedException, MakanException, ParseException {
 
@@ -121,4 +119,5 @@ public class SimpleTests {
         makanMessage = bobMakan.getMessage(1, true);
         Assert.assertEquals(BOB2ALICE_MESSAGE, makanMessage.getContentAsString());
     }
+    */
 }
