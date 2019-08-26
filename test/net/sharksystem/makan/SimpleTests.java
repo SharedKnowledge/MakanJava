@@ -23,17 +23,33 @@ public class SimpleTests {
     public static final String BOB = "bob";
     public static final String ALICE2BOB_MESSAGE = "Hi Bob";
     public static final String BOB2ALICE_MESSAGE = "Hi Alice";
-/*
-    @Test
-    public void scenario1() throws IOException, ASAPException, InterruptedException, MakanException, ParseException {
+    private static final CharSequence ALICE_ID = "42";
+    private static final CharSequence BOB_ID = "43";
 
+    @Test
+    public void scenario1() throws IOException, ASAPException {
         ASAPEngineFS.removeFolder(ALICE_FOLDER); // clean previous version before
         ASAPEngineFS.removeFolder(BOB_FOLDER); // clean previous version before
 
+        ASAPStorage asapStorage = ASAPEngineFS.getASAPStorage(ALICE, ALICE_FOLDER, Makan.MAKAN_FORMAT);
+
+        MakanStorage makanStorage = new MakanStorage_Impl(asapStorage);
+        try {
+            makanStorage.getMakan(0);
+        }
+        catch(ASAPException e) {
+            // no makan yet
+        }
+
+        makanStorage.createMakan(ALICE_BOB_CHAT_URL, ALICE_BOB_MAKAN_NAME, ALICE_ID);
+
+        makanStorage.getMakan(0);
+    }
+
+        /*
         // alice writes a message into chunkStorage
         ASAPStorage aliceStorage =
                 ASAPEngineFS.getASAPStorage(ALICE, ALICE_FOLDER, Makan.MAKAN_FORMAT);
-
 
         MakanDummyChunkStorage aliceMakan = new MakanDummyChunkStorage(ALICE_BOB_MAKAN_NAME, ALICE_BOB_CHAT_URL, aliceStorage,
                 new DummyPerson(ALICE), new DummyIdentityStorage());
@@ -119,5 +135,6 @@ public class SimpleTests {
         makanMessage = bobMakan.getMessage(1, true);
         Assert.assertEquals(BOB2ALICE_MESSAGE, makanMessage.getContentAsString());
     }
-    */
+
+         */
 }

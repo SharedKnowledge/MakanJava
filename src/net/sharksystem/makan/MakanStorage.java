@@ -23,4 +23,5 @@ public interface MakanStorage {
 
     Makan getMakan(int position) throws IOException, ASAPException;
 
+    void refresh() throws IOException, ASAPException;
 }

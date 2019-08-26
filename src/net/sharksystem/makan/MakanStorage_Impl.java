@@ -42,4 +42,8 @@ public class MakanStorage_Impl implements MakanStorage {
                 this.asapStorage.getChannelURIs().get(position)
         );
     }
+
+    public void refresh() throws IOException, ASAPException {
+        this.asapStorage.refresh();
+    }
 }
