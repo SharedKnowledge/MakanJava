@@ -3,6 +3,7 @@ package net.sharksystem.makan;
 import net.sharksystem.asap.ASAPException;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface MakanStorage {
     String KEY_MAKAN_NAME = "makanName";
@@ -21,7 +22,13 @@ public interface MakanStorage {
 
     void removeMakan(CharSequence uri) throws IOException, ASAPException;
 
+    void removeAllMakan() throws IOException;
+
+    void removeMakan(int position) throws IOException, ASAPException;
+
     Makan getMakan(int position) throws IOException, ASAPException;
+
+    Makan getMakan(CharSequence uri) throws IOException, ASAPException;
 
     void refresh() throws IOException, ASAPException;
 }

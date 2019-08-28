@@ -43,7 +43,9 @@ public class SimpleTests {
 
         makanStorage.createMakan(ALICE_BOB_CHAT_URL, ALICE_BOB_MAKAN_NAME, ALICE_ID);
 
-        makanStorage.getMakan(0);
+        Assert.assertNotNull(makanStorage.getMakan(0));
+
+        Assert.assertNotNull(makanStorage.getMakan(ALICE_BOB_CHAT_URL));
     }
 
         /*
