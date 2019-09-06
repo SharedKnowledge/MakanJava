@@ -1,9 +1,8 @@
 package net.sharksystem.makan;
 
-import net.sharksystem.asap.ASAPEngine;
-import net.sharksystem.asap.ASAPEngineFS;
-import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.ASAPStorage;
+import net.sharksystem.asap.*;
+import net.sharksystem.asap.util.ASAPChunkReceiverTester;
+import net.sharksystem.asap.util.ASAPEngineThread;
 import net.sharksystem.util.localloop.TCPChannel;
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,7 +13,11 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
 
+import static net.sharksystem.asap.MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME;
+
 public class SimpleTests {
+    public static final String AN_OPEN_MAKAN_URI = "content://someOpenTopic";
+    public static final String AN_OPEN_MAKAN_TITLE = "an open topic";
     public static final String ALICE_BOB_CHAT_URL = "content://aliceAndBob.talk";
     public static final String ALICE_BOB_MAKAN_NAME = "Alice and Bob talk";
     public static final String ALICE_FOLDER = "tests/alice";
@@ -26,8 +29,15 @@ public class SimpleTests {
     private static final CharSequence ALICE_ID = "42";
     private static final CharSequence BOB_ID = "43";
 
+    private static int portnumber = 7777;
+
+    private int getPortNumber() {
+        portnumber++;
+        return portnumber;
+    }
+
     @Test
-    public void scenario1() throws IOException, ASAPException {
+    public void create() throws IOException, ASAPException {
         ASAPEngineFS.removeFolder(ALICE_FOLDER); // clean previous version before
         ASAPEngineFS.removeFolder(BOB_FOLDER); // clean previous version before
 
@@ -48,45 +58,48 @@ public class SimpleTests {
         Assert.assertNotNull(makanStorage.getMakan(ALICE_BOB_CHAT_URL));
     }
 
-        /*
-        // alice writes a message into chunkStorage
-        ASAPStorage aliceStorage =
-                ASAPEngineFS.getASAPStorage(ALICE, ALICE_FOLDER, Makan.MAKAN_FORMAT);
+    @Test
+    public void oneWayExchangeOpenMakan() throws IOException, ASAPException, InterruptedException {
+        ASAPEngineFS.removeFolder(ALICE_FOLDER); // clean previous version before
+        ASAPEngineFS.removeFolder(BOB_FOLDER); // clean previous version before
 
-        MakanDummyChunkStorage aliceMakan = new MakanDummyChunkStorage(ALICE_BOB_MAKAN_NAME, ALICE_BOB_CHAT_URL, aliceStorage,
-                new DummyPerson(ALICE), new DummyIdentityStorage());
-
-        // write a message into makan
-        // fake sent date
-        Date aliceSentDate = DateFormat.getInstance().parse("11.09.01 11:45");
-
-        aliceMakan.addMessage(ALICE2BOB_MESSAGE, aliceSentDate);
-
-        // bob does the same
-        ASAPStorage bobStorage =
-                ASAPEngineFS.getASAPStorage(BOB, BOB_FOLDER, Makan.MAKAN_FORMAT);
-
-        Makan bobMakan = new MakanDummyChunkStorage(ALICE_BOB_MAKAN_NAME, ALICE_BOB_CHAT_URL, bobStorage,
-                new DummyPerson(BOB), new DummyIdentityStorage());
-
-        // wait a second - just to ensure another date entry.
-        Thread.sleep(1000);
-        // write a message into makan
-        bobMakan.addMessage(BOB2ALICE_MESSAGE);
-
-        ////////////// perform AASP exchange ///////////////////
-
-        // now set up both engines / use default reader
-        ASAPEngine aliceEngine = ASAPEngineFS.getASAPEngine("Alice", ALICE_FOLDER, Makan.MAKAN_FORMAT);
-
-        ASAPEngine bobEngine = ASAPEngineFS.getASAPEngine("Bob", BOB_FOLDER, Makan.MAKAN_FORMAT);
+        ///////////////////////////////////////////////////////////////////////////////////////////////////
+        //                                        prepare multi engines                                  //
+        ///////////////////////////////////////////////////////////////////////////////////////////////////
 
         ASAPChunkReceiverTester aliceListener = new ASAPChunkReceiverTester();
-        ASAPChunkReceiverTester bobListener = new ASAPChunkReceiverTester();
+        MultiASAPEngineFS aliceEngine = MultiASAPEngineFS_Impl.createMultiEngine(
+                ALICE, ALICE_FOLDER, DEFAULT_MAX_PROCESSING_TIME, aliceListener);
 
+        ASAPChunkReceiverTester bobListener = new ASAPChunkReceiverTester();
+        MultiASAPEngineFS bobEngine = MultiASAPEngineFS_Impl.createMultiEngine(
+                BOB, BOB_FOLDER, DEFAULT_MAX_PROCESSING_TIME, bobListener);
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////
+        //                                        create some content                                    //
+        ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+        ASAPEngine aliceMakanASAPEngine = aliceEngine.getASAPEngine(Makan.MAKAN_APP_NAME, Makan.MAKAN_FORMAT);
+        MakanStorage makanAliceStorage = new MakanStorage_Impl(aliceMakanASAPEngine);
+
+        ASAPEngine bobMakanASAPEngine = bobEngine.getASAPEngine(Makan.MAKAN_APP_NAME, Makan.MAKAN_FORMAT);
+        MakanStorage makanBobStorage = new MakanStorage_Impl(bobMakanASAPEngine);
+
+        // create open makan
+        Makan openAliceMakan = makanAliceStorage.createMakan(AN_OPEN_MAKAN_URI, AN_OPEN_MAKAN_TITLE);
+
+        // put something in
+        String aliceOpenMessage = "I'd like to say something about that open topic";
+        openAliceMakan.addMessage(aliceOpenMessage);
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////
+        //                                        setup connection                                       //
+        ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+        int portNumber = this.getPortNumber();
         // create connections for both sides
-        TCPChannel aliceChannel = new TCPChannel(7777, true, "a2b");
-        TCPChannel bobChannel = new TCPChannel(7777, false, "b2a");
+        TCPChannel aliceChannel = new TCPChannel(portNumber, true, "a2b");
+        TCPChannel bobChannel = new TCPChannel(portNumber, false, "b2a");
 
         aliceChannel.start();
         bobChannel.start();
@@ -95,48 +108,38 @@ public class SimpleTests {
         aliceChannel.waitForConnection();
         bobChannel.waitForConnection();
 
+        ///////////////////////////////////////////////////////////////////////////////////////////////////
+        //                                        run asap connection                                    //
+        ///////////////////////////////////////////////////////////////////////////////////////////////////
+
         // run engine as thread
         ASAPEngineThread aliceEngineThread = new ASAPEngineThread(aliceEngine,
-                aliceChannel.getInputStream(),
-                aliceChannel.getOutputStream(),
-                aliceListener);
+                aliceChannel.getInputStream(), aliceChannel.getOutputStream());
 
         aliceEngineThread.start();
 
         // and better debugging - no new thread
-        bobEngine.handleConnection(bobChannel.getInputStream(),
-                bobChannel.getOutputStream(), bobListener);
+        bobEngine.handleConnection(bobChannel.getInputStream(), bobChannel.getOutputStream());
 
         // wait until communication probably ends
+        System.out.flush();
+        System.err.flush();
         Thread.sleep(5000);
+        System.out.flush();
+        System.err.flush();
 
-        // close connections: note AASPEngine does NOT close any connection!!
+        // close connections: note ASAPEngine does NOT close any connection!!
         aliceChannel.close();
         bobChannel.close();
+        System.out.flush();
+        System.err.flush();
         Thread.sleep(1000);
+        System.out.flush();
+        System.err.flush();
 
         // check results
-
-        // listener must have been informed about new messages
-        Assert.assertTrue(aliceListener.chunkReceived());
-        Assert.assertTrue(bobListener.chunkReceived());
-
-        /////////////// check on makan abstraction layer ///////////////
-
-        // simulate sync
-        bobStorage = ASAPEngineFS.getASAPStorage(BOB, BOB_FOLDER, Makan.MAKAN_FORMAT);
-        bobMakan = new MakanDummyChunkStorage(
-                ALICE_BOB_MAKAN_NAME,
-                ALICE_BOB_CHAT_URL,
-                bobStorage,
-                new DummyPerson(BOB), new DummyIdentityStorage());
-
-        MakanMessage makanMessage = bobMakan.getMessage(0, true);
-        Assert.assertEquals(ALICE2BOB_MESSAGE, makanMessage.getContentAsString());
-
-        makanMessage = bobMakan.getMessage(1, true);
-        Assert.assertEquals(BOB2ALICE_MESSAGE, makanMessage.getContentAsString());
+        Makan openBobMakan = makanBobStorage.getMakan(AN_OPEN_MAKAN_URI);
+        MakanMessage message = openBobMakan.getMessage(0, true);
+        message.getContentAsString().toString().equalsIgnoreCase(aliceOpenMessage);
     }
-
-         */
 }

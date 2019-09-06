@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface Makan {
     CharSequence MAKAN_FORMAT = "makan";
+    CharSequence MAKAN_APP_NAME = "makan";
 
     /**
      * user friendly name

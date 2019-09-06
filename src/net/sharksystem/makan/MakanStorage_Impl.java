@@ -32,11 +32,19 @@ public class MakanStorage_Impl implements MakanStorage {
         }
 
         this.asapStorage.putExtra(uri, KEY_MAKAN_NAME, userFriendlyName.toString());
-        this.asapStorage.putExtra(uri, KEY_ADMIN_ID, userFriendlyName.toString());
+        if(adminID != null) {
+            // closed makan
+            this.asapStorage.putExtra(uri, KEY_ADMIN_ID, userFriendlyName.toString());
+        }
         return new ASAPChunkCacheMakan(
                 this.asapStorage.getChunkCache(uri),
                 this.asapStorage,
                 uri);
+    }
+
+    @Override
+    public Makan createMakan(CharSequence uri, CharSequence userFriendlyName) throws IOException, ASAPException {
+        return this.createMakan(uri, userFriendlyName, null);
     }
 
     @Override
