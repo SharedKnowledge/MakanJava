@@ -22,11 +22,11 @@ public class InMemoMakanMessage implements MakanMessage {
         this.sentDate = sentDate;
     }
 
-    InMemoMakanMessage(CharSequence aaspMessage) throws ASAPException {
-        this.deserializeMessage(aaspMessage); // throws exception if malformed
+    InMemoMakanMessage(CharSequence asapMessage) throws ASAPException {
+        this.deserializeMessage(asapMessage); // throws exception if malformed
 
         // not malformed - set rest of it
-        this.serializedMessage = aaspMessage;
+        this.serializedMessage = asapMessage;
     }
 
     public CharSequence getSerializedMessage() {

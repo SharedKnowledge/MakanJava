@@ -1,7 +1,7 @@
 package net.sharksystem.makan;
 
 import net.sharksystem.asap.*;
-import net.sharksystem.asap.util.ASAPChunkReceiverTester;
+import net.sharksystem.asap.util.ASAPChunkReceivedTester;
 import net.sharksystem.asap.util.ASAPEngineThread;
 import net.sharksystem.util.localloop.TCPChannel;
 import org.junit.Assert;
@@ -9,9 +9,6 @@ import org.junit.Test;
 
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.util.Date;
 
 import static net.sharksystem.asap.MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME;
 
@@ -67,13 +64,12 @@ public class SimpleTests {
         //                                        prepare multi engines                                  //
         ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-        ASAPChunkReceiverTester aliceListener = new ASAPChunkReceiverTester();
+        ASAPChunkReceivedTester aliceListener = new ASAPChunkReceivedTester();
         MultiASAPEngineFS aliceEngine = MultiASAPEngineFS_Impl.createMultiEngine(
                 ALICE, ALICE_FOLDER, DEFAULT_MAX_PROCESSING_TIME, aliceListener);
 
-        ASAPChunkReceiverTester bobListener = new ASAPChunkReceiverTester();
         MultiASAPEngineFS bobEngine = MultiASAPEngineFS_Impl.createMultiEngine(
-                BOB, BOB_FOLDER, DEFAULT_MAX_PROCESSING_TIME, bobListener);
+                BOB, BOB_FOLDER, DEFAULT_MAX_PROCESSING_TIME, null);
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         //                                        create some content                                    //
@@ -83,6 +79,9 @@ public class SimpleTests {
         MakanStorage makanAliceStorage = new MakanStorage_Impl(aliceMakanASAPEngine);
 
         ASAPEngine bobMakanASAPEngine = bobEngine.getASAPEngine(Makan.MAKAN_APP_NAME, Makan.MAKAN_FORMAT);
+        ASAPChunkReceivedListener bobListener = new OpenMakanChunkReceivedListener(bobMakanASAPEngine);
+        bobEngine.setASAPChunkReceivedListener(Makan.MAKAN_APP_NAME, bobListener);
+
         MakanStorage makanBobStorage = new MakanStorage_Impl(bobMakanASAPEngine);
 
         // create open makan

@@ -1,6 +1,7 @@
 package net.sharksystem.makan;
 
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.ASAPStorage;
 
 import java.io.IOException;
 import java.util.List;
@@ -52,10 +53,12 @@ public interface MakanStorage {
      * get makan with a given uri
      * @param uri
      * @return
-     * @throws IOException
-     * @throws ASAPException
+     * @throws IOException io problems when accessing data
+     * @throws ASAPException makan does not exist
      */
     Makan getMakan(CharSequence uri) throws IOException, ASAPException;
 
     void refresh() throws IOException, ASAPException;
+
+    public ASAPStorage getASAPStorage();
 }

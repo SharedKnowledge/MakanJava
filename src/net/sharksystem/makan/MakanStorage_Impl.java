@@ -13,6 +13,10 @@ public class MakanStorage_Impl implements MakanStorage {
         this.asapStorage = asapStorage;
     }
 
+    public ASAPStorage getASAPStorage() {
+        return this.asapStorage;
+    }
+
     @Override
     public int size() throws IOException {
         return this.asapStorage.getChannelURIs().size();
@@ -58,10 +62,16 @@ public class MakanStorage_Impl implements MakanStorage {
 
     @Override
     public Makan getMakan(CharSequence uri) throws IOException, ASAPException {
-        return new ASAPChunkCacheMakan(
+        ASAPChunkCacheMakan makan = new ASAPChunkCacheMakan(
                 this.asapStorage.getChunkCache(uri),
                 this.asapStorage,
                 uri);
+
+        if(makan == null) {
+            throw new ASAPException("makan does not exist");
+        }
+
+        return makan;
     }
 
     public void refresh() throws IOException, ASAPException {
