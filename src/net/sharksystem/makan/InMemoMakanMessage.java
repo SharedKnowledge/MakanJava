@@ -46,22 +46,22 @@ public class InMemoMakanMessage implements MakanMessage {
     }
 
     private void deserializeMessage(CharSequence message) throws ASAPException {
-        // parse aaspMessage
+        // parse asapMessage
         StringTokenizer st = new StringTokenizer(message.toString(), DELIMITER);
         if(!st.hasMoreTokens()) {
-            throw new ASAPException("malformed Makan Message in AASP message");
+            throw new ASAPException("malformed Makan Message in ASAP message");
         }
 
         this.senderID = st.nextToken();
 
         if(!st.hasMoreTokens()) {
-            throw new ASAPException("malformed Makan Message in AASP message");
+            throw new ASAPException("malformed Makan Message in ASAP message");
         }
 
         String dateString = st.nextToken();
 
         if(!st.hasMoreTokens()) {
-            throw new ASAPException("malformed Makan Message in AASP message");
+            throw new ASAPException("malformed Makan Message in ASAP message");
         }
 
         this.contentASString = st.nextToken();
@@ -95,5 +95,13 @@ public class InMemoMakanMessage implements MakanMessage {
     @Override
     public Date getSentDate() {
         return this.sentDate;
+    }
+
+    @Override
+    public boolean isLaterThan(MakanMessage message) throws ASAPException, IOException {
+        Date sentDateMessage = message.getSentDate();
+        Date sentDateMe = this.getSentDate();
+
+        return sentDateMe.after(sentDateMessage);
     }
 }

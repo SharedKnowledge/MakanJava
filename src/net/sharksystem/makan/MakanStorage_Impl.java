@@ -23,6 +23,11 @@ public class MakanStorage_Impl implements MakanStorage {
     }
 
     @Override
+    public CharSequence getOwner() {
+        return this.asapStorage.getOwner();
+    }
+
+    @Override
     public Makan createMakan(CharSequence uri, CharSequence userFriendlyName, CharSequence adminID)
             throws IOException, ASAPException {
 
@@ -40,10 +45,7 @@ public class MakanStorage_Impl implements MakanStorage {
             // closed makan
             this.asapStorage.putExtra(uri, KEY_ADMIN_ID, userFriendlyName.toString());
         }
-        return new ASAPChunkCacheMakan(
-                this.asapStorage.getChunkCache(uri),
-                this.asapStorage,
-                uri);
+        return new MakanASAPChunkChainWrapper(this, uri);
     }
 
     @Override
@@ -52,20 +54,8 @@ public class MakanStorage_Impl implements MakanStorage {
     }
 
     @Override
-    public Makan getMakan(int position) throws IOException, ASAPException {
-        return new ASAPChunkCacheMakan(
-                this.asapStorage.getChunkCache(position),
-                this.asapStorage,
-                this.asapStorage.getChannelURIs().get(position)
-        );
-    }
-
-    @Override
     public Makan getMakan(CharSequence uri) throws IOException, ASAPException {
-        ASAPChunkCacheMakan makan = new ASAPChunkCacheMakan(
-                this.asapStorage.getChunkCache(uri),
-                this.asapStorage,
-                uri);
+        MakanASAPChunkChainWrapper makan = new MakanASAPChunkChainWrapper(this, uri);
 
         if(makan == null) {
             throw new ASAPException("makan does not exist");
@@ -84,10 +74,6 @@ public class MakanStorage_Impl implements MakanStorage {
         for(CharSequence uri : channelURIs) {
             this.removeMakan(uri);
         }
-    }
-
-    public void removeMakan(int position) throws IOException, ASAPException {
-        this.removeMakan(this.getMakan(position).getURI());
     }
 
     @Override

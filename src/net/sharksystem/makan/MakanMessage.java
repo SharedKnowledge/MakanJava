@@ -16,4 +16,6 @@ public interface MakanMessage {
 
     /** get sent date */
     Date getSentDate() throws ASAPException, IOException;
+
+    boolean isLaterThan(MakanMessage message) throws ASAPException, IOException;
 }

@@ -18,6 +18,8 @@ public interface MakanStorage {
      */
     int size() throws IOException, ASAPException;
 
+    CharSequence getOwner();
+
     /**
      * Create a closed / administrated makan - admin can change recipient list
      * @param uri
@@ -44,10 +46,6 @@ public interface MakanStorage {
     void removeMakan(CharSequence uri) throws IOException, ASAPException;
 
     void removeAllMakan() throws IOException;
-
-    void removeMakan(int position) throws IOException, ASAPException;
-
-    Makan getMakan(int position) throws IOException, ASAPException;
 
     /**
      * get makan with a given uri
