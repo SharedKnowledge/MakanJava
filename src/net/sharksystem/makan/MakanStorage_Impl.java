@@ -54,6 +54,16 @@ public class MakanStorage_Impl implements MakanStorage {
     }
 
     @Override
+    public Makan getMakan(int position) throws IOException, ASAPException {
+        try {
+            return this.getMakan(this.getASAPStorage().getChannelURIs().get(position));
+        }
+        catch(IndexOutOfBoundsException e) {
+            throw new ASAPException("position points behind avaiable makan uris: " + position);
+        }
+    }
+
+    @Override
     public Makan getMakan(CharSequence uri) throws IOException, ASAPException {
         MakanASAPChunkChainWrapper makan = new MakanASAPChunkChainWrapper(this, uri);
 

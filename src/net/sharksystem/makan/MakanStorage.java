@@ -56,6 +56,8 @@ public interface MakanStorage {
      */
     Makan getMakan(CharSequence uri) throws IOException, ASAPException;
 
+    Makan getMakan(int position) throws IOException, ASAPException;
+
     void refresh() throws IOException, ASAPException;
 
     public ASAPStorage getASAPStorage();
