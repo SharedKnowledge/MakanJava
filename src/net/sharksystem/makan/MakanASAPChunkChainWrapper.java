@@ -306,20 +306,12 @@ class MakanASAPChunkChainWrapper implements Makan {
         this.addMessage(contentAsCharacter, new Date());
     }
 
-    MakanMessage getCurrentMessage() throws ASAPException, IOException {
-        return this.getMessage(this.currentPosition, this.lastChronologically);
-    }
-
-    public void increment() {
-        this.currentPosition++;
-    }
-
-    public void init(int position, boolean chronologically) {
-        this.currentPosition = position;
-        this.lastChronologically = chronologically;
-    }
-
     public int size() throws IOException {
-        return 0; // TODO: nyi
+        int size = 0;
+        for(ASAPChunkChain asapChain : this.asapChunkCacheList) {
+            if(asapChain.size() > 0)  size += asapChain.size();
+        }
+
+        return size;
     }
 }
