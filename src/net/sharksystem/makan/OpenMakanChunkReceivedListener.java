@@ -3,7 +3,6 @@ package net.sharksystem.makan;
 import net.sharksystem.asap.*;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 public class OpenMakanChunkReceivedListener implements ASAPChunkReceivedListener {
 
@@ -18,7 +17,7 @@ public class OpenMakanChunkReceivedListener implements ASAPChunkReceivedListener
     }
 
     @Override
-    public void chunkReceived(String sender, String uri, int era) {
+    public void chunkReceived(String format, String sender, String uri, int era) {
         // check if makan already exists
         try {
             this.makanStorage.getMakan(uri);

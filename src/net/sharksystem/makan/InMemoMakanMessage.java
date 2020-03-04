@@ -1,6 +1,7 @@
 package net.sharksystem.makan;
 
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.util.Helper;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -35,6 +36,10 @@ public class InMemoMakanMessage implements MakanMessage {
         }
 
         return this.serializedMessage;
+    }
+
+    public byte[] getSerializedASAPMessageAsBytes() {
+        return Helper.characterSequence2bytes(this.getSerializedMessage());
     }
 
     private CharSequence serializeMessage() {

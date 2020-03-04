@@ -3,11 +3,12 @@ package net.sharksystem.makan;
 import net.sharksystem.asap.ASAPException;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 public interface Makan {
-    CharSequence MAKAN_FORMAT = "makan";
     CharSequence MAKAN_APP_NAME = "makan";
 
     /**
@@ -25,7 +26,7 @@ public interface Makan {
     /**
      * Return member ids
      */
-    List<CharSequence> getMemberIDs() throws IOException;
+    Set<CharSequence> getMemberIDs() throws IOException;
 
     void addMember(CharSequence newMemberID)  throws ASAPException, IOException;
 

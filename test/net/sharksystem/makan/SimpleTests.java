@@ -3,7 +3,7 @@ package net.sharksystem.makan;
 import net.sharksystem.asap.*;
 import net.sharksystem.asap.util.ASAPChunkReceivedTester;
 import net.sharksystem.asap.util.ASAPEngineThread;
-import net.sharksystem.util.localloop.TCPChannel;
+import net.sharksystem.cmdline.TCPChannel;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,7 +42,7 @@ public class SimpleTests {
         ASAPEngineFS.removeFolder(ALICE_FOLDER); // clean previous version before
         ASAPEngineFS.removeFolder(BOB_FOLDER); // clean previous version before
 
-        ASAPStorage asapStorage = ASAPEngineFS.getASAPStorage(ALICE, ALICE_FOLDER, Makan.MAKAN_FORMAT);
+        ASAPStorage asapStorage = ASAPEngineFS.getASAPStorage(ALICE, ALICE_FOLDER, Makan.MAKAN_APP_NAME);
 
         MakanStorage makanStorage = new MakanStorage_Impl(asapStorage);
         try {
@@ -62,12 +62,12 @@ public class SimpleTests {
         ASAPEngineFS.removeFolder(ALICE_FOLDER); // clean previous version before
         ASAPEngineFS.removeFolder(BOB_FOLDER); // clean previous version before
 
-        ASAPEngine asapAliceStorage = ASAPEngineFS.getASAPStorage(ALICE, ALICE_FOLDER, Makan.MAKAN_FORMAT);
+        ASAPEngine asapAliceStorage = ASAPEngineFS.getASAPStorage(ALICE, ALICE_FOLDER, Makan.MAKAN_APP_NAME);
         MakanStorage_Impl aliceMakanStorage = new MakanStorage_Impl(asapAliceStorage);
 
         // create incoming storages - somewhat a hack
-        ASAPEngineFS.getASAPStorage(BOB, ALICE_FOLDER + "/" + BOB, Makan.MAKAN_FORMAT);
-        ASAPEngineFS.getASAPStorage(CLARA, ALICE_FOLDER + "/" + CLARA, Makan.MAKAN_FORMAT);
+        ASAPEngineFS.getASAPStorage(BOB, ALICE_FOLDER + "/" + BOB, Makan.MAKAN_APP_NAME);
+        ASAPEngineFS.getASAPStorage(CLARA, ALICE_FOLDER + "/" + CLARA, Makan.MAKAN_APP_NAME);
 
         MakanStorage_Impl bobAtAliceMakanStorage =
                 new MakanStorage_Impl(asapAliceStorage.getExistingIncomingStorage(BOB));
@@ -162,10 +162,10 @@ public class SimpleTests {
         //                                        create some content                                    //
         ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-        ASAPEngine aliceMakanASAPEngine = aliceEngine.getASAPEngine(Makan.MAKAN_APP_NAME, Makan.MAKAN_FORMAT);
+        ASAPEngine aliceMakanASAPEngine = aliceEngine.getASAPEngine(Makan.MAKAN_APP_NAME);
         MakanStorage makanAliceStorage = new MakanStorage_Impl(aliceMakanASAPEngine);
 
-        ASAPEngine bobMakanASAPEngine = bobEngine.getASAPEngine(Makan.MAKAN_APP_NAME, Makan.MAKAN_FORMAT);
+        ASAPEngine bobMakanASAPEngine = bobEngine.getASAPEngine(Makan.MAKAN_APP_NAME);
         ASAPChunkReceivedListener bobListener = new OpenMakanChunkReceivedListener(bobMakanASAPEngine);
         bobEngine.setASAPChunkReceivedListener(Makan.MAKAN_APP_NAME, bobListener);
 

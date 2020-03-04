@@ -1,18 +1,20 @@
 package net.sharksystem.makan;
 
-import net.sharksystem.asap.ASAPChunkChain;
 import net.sharksystem.asap.ASAPChunkStorage;
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.ASAPStorage;
+import net.sharksystem.asap.apps.ASAPMessages;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import static net.sharksystem.makan.MakanStorage.KEY_MAKAN_NAME;
 
 class MakanASAPChunkChainWrapper implements Makan {
-    private List<ASAPChunkChain> asapChunkCacheList;
+    private List<ASAPMessages> asapMessagesList;
     private final MakanStorage makanStorage;
     private final CharSequence uri;
 
@@ -25,7 +27,7 @@ class MakanASAPChunkChainWrapper implements Makan {
      * @param uri
      */
     MakanASAPChunkChainWrapper(MakanStorage makanStorage,
-                               CharSequence uri) throws IOException {
+                               CharSequence uri) throws IOException, ASAPException {
 
         this.makanStorage = makanStorage;
         this.uri = uri;
@@ -44,7 +46,7 @@ class MakanASAPChunkChainWrapper implements Makan {
     }
 
     @Override
-    public List<CharSequence> getMemberIDs() throws IOException {
+    public Set<CharSequence> getMemberIDs() throws IOException {
         return makanStorage.getASAPStorage().getRecipients(this.uri);
     }
 
@@ -72,18 +74,23 @@ class MakanASAPChunkChainWrapper implements Makan {
     //                 a makan is made up of several asap caches - one local and one for each sender         //
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void reset() throws IOException {
-        this.asapChunkCacheList = new ArrayList<>();
-        // get chunks from local user
-        this.asapChunkCacheList.add(this.makanStorage.getASAPStorage().getChunkChain(this.uri));
+    void reset() throws IOException, ASAPException {
+        this.asapMessagesList = new ArrayList<>();
+
+        if(this.makanStorage.getASAPStorage().channelExists(this.uri)) {
+            // get chunks from local user
+            this.asapMessagesList.add(this.makanStorage.getASAPStorage().getChannel(this.uri).getMessages());
+        }
 
         // what sender has participated in that discussion
         for(CharSequence sender : this.makanStorage.getASAPStorage().getSender()) {
             ASAPChunkStorage senderStorage = this.makanStorage.getASAPStorage().getIncomingChunkStorage(sender);
 
-            if(senderStorage.existsChunk(this.uri, this.makanStorage.getASAPStorage().getEra())) { // TODO: getEra()??
-                this.asapChunkCacheList.add(senderStorage.getASAPChunkCache(this.uri, this.makanStorage.getASAPStorage().getEra())); // TODO: era??
-            }
+            // no: find anything that was ever received
+//            if(senderStorage.existsChunk(this.uri, this.makanStorage.getASAPStorage().getEra())) { // TODO: getEra()??
+                this.asapMessagesList.add(
+                    senderStorage.getASAPChunkCache(this.uri, this.makanStorage.getASAPStorage().getEra())); // TODO: era??
+//            }
         }
     }
 
@@ -95,7 +102,7 @@ class MakanASAPChunkChainWrapper implements Makan {
             throws ASAPException, IOException  {
 
         int maxIndex = -1;
-        for(ASAPChunkChain asapChain : this.asapChunkCacheList) {
+        for(ASAPMessages asapChain : this.asapMessagesList) {
             if(asapChain.size() > 0)  maxIndex += asapChain.size();
         }
 
@@ -117,12 +124,12 @@ class MakanASAPChunkChainWrapper implements Makan {
          */
 
         // init structures
-        this.makanMessagesCache = new MakanMessage[asapChunkCacheList.size()];
-        this.makanMessagePosition = new int[asapChunkCacheList.size()];
+        this.makanMessagesCache = new MakanMessage[asapMessagesList.size()];
+        this.makanMessagePosition = new int[asapMessagesList.size()];
 
 
         int index = 0;
-        for(ASAPChunkChain asapChain : this.asapChunkCacheList) {
+        for(ASAPMessages asapChain : this.asapMessagesList) {
             if(asapChain.size() == 0) {
                 // chain is empty
                 this.makanMessagePosition[index] = -1;
@@ -187,7 +194,7 @@ class MakanASAPChunkChainWrapper implements Makan {
             that chain. How far, though? If the other chains have in sum more elements as position -
             we could squeeze that queue until it is no more leader on the right flank. - TODO optimization
              */
-            ASAPChunkChain asapChunkChain = this.asapChunkCacheList.get(this.rightBoarderIndex);
+            ASAPMessages asapMessages = this.asapMessagesList.get(this.rightBoarderIndex);
             int oldIndex = this.makanMessagePosition[this.rightBoarderIndex];
             if(oldIndex == 0) {
                 // it's out
@@ -195,7 +202,7 @@ class MakanASAPChunkChainWrapper implements Makan {
                 this.makanMessagePosition[this.rightBoarderIndex] = -1;
             } else {
                 this.makanMessagesCache[this.rightBoarderIndex] =
-                        new InMemoMakanMessage(asapChunkChain.getMessage(oldIndex - 1, chronologically));
+                        new InMemoMakanMessage(asapMessages.getMessage(oldIndex - 1, chronologically));
                 this.makanMessagePosition[this.rightBoarderIndex] = oldIndex - 1;
             }
 
@@ -208,14 +215,14 @@ class MakanASAPChunkChainWrapper implements Makan {
 
     private void squeezeRight(int asapChainIndex, Date boarderDate, boolean chronologically) throws IOException, ASAPException {
         // get chain
-        ASAPChunkChain asapChain = this.asapChunkCacheList.get(asapChainIndex);
+        ASAPMessages asapMessages = this.asapMessagesList.get(asapChainIndex);
 
         // get current index
         int currentIndex = this.makanMessagePosition[asapChainIndex] - 1;
         MakanMessage oldMessage = this.makanMessagesCache[asapChainIndex];
 
         while(currentIndex > 0) {
-            MakanMessage makanMessage = new InMemoMakanMessage(asapChain.getMessage(currentIndex, chronologically));
+            MakanMessage makanMessage = new InMemoMakanMessage(asapMessages.getMessage(currentIndex, chronologically));
 
             // in any case - take successor
             this.makanMessagesCache[asapChainIndex] = makanMessage;
@@ -308,7 +315,7 @@ class MakanASAPChunkChainWrapper implements Makan {
 
     public int size() throws IOException {
         int size = 0;
-        for(ASAPChunkChain asapChain : this.asapChunkCacheList) {
+        for(ASAPMessages asapChain : this.asapMessagesList) {
             if(asapChain.size() > 0)  size += asapChain.size();
         }
 
