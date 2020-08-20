@@ -2,18 +2,15 @@ package net.sharksystem.makan;
 
 import net.sharksystem.asap.*;
 import net.sharksystem.asap.util.ASAPChunkReceivedTester;
-import net.sharksystem.asap.util.ASAPEngineThread;
-import net.sharksystem.cmdline.TCPChannel;
+import net.sharksystem.asap.util.ASAPPeerHandleConnectionThread;
+import net.sharksystem.cmdline.TCPStream;
 import org.junit.Assert;
 import org.junit.Test;
-
 
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
-
-import static net.sharksystem.asap.MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME;
 
 public class SimpleTests {
     public static final String AN_OPEN_MAKAN_URI = "content://someOpenTopic";
@@ -152,11 +149,11 @@ public class SimpleTests {
         ///////////////////////////////////////////////////////////////////////////////////////////////////
 
         ASAPChunkReceivedTester aliceListener = new ASAPChunkReceivedTester();
-        MultiASAPEngineFS aliceEngine = MultiASAPEngineFS_Impl.createMultiEngine(
-                ALICE, ALICE_FOLDER, DEFAULT_MAX_PROCESSING_TIME, aliceListener);
+        ASAPPeer aliceEngine = ASAPPeerFS.createASAPPeer(
+                ALICE, ALICE_FOLDER, ASAPPeer.DEFAULT_MAX_PROCESSING_TIME, aliceListener);
 
-        MultiASAPEngineFS bobEngine = MultiASAPEngineFS_Impl.createMultiEngine(
-                BOB, BOB_FOLDER, DEFAULT_MAX_PROCESSING_TIME, null);
+        ASAPPeer bobEngine = ASAPPeerFS.createASAPPeer(
+                BOB, BOB_FOLDER, ASAPPeer.DEFAULT_MAX_PROCESSING_TIME, null);
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         //                                        create some content                                    //
@@ -184,28 +181,28 @@ public class SimpleTests {
 
         int portNumber = this.getPortNumber();
         // create connections for both sides
-        TCPChannel aliceChannel = new TCPChannel(portNumber, true, "a2b");
-        TCPChannel bobChannel = new TCPChannel(portNumber, false, "b2a");
+        TCPStream aliceStream = new TCPStream(portNumber, true, "a2b");
+        TCPStream bobStream = new TCPStream(portNumber, false, "b2a");
 
-        aliceChannel.start();
-        bobChannel.start();
+        aliceStream.start();
+        bobStream.start();
 
         // wait to connect
-        aliceChannel.waitForConnection();
-        bobChannel.waitForConnection();
+        aliceStream.waitForConnection();
+        bobStream.waitForConnection();
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         //                                        run asap connection                                    //
         ///////////////////////////////////////////////////////////////////////////////////////////////////
 
         // run engine as thread
-        ASAPEngineThread aliceEngineThread = new ASAPEngineThread(aliceEngine,
-                aliceChannel.getInputStream(), aliceChannel.getOutputStream());
+        ASAPPeerHandleConnectionThread aliceHandleThread = new ASAPPeerHandleConnectionThread(aliceEngine,
+                aliceStream.getInputStream(), aliceStream.getOutputStream());
 
-        aliceEngineThread.start();
+        aliceHandleThread.start();
 
         // and better debugging - no new thread
-        bobEngine.handleConnection(bobChannel.getInputStream(), bobChannel.getOutputStream());
+        bobEngine.handleConnection(bobStream.getInputStream(), bobStream.getOutputStream());
 
         // wait until communication probably ends
         System.out.flush();
@@ -215,8 +212,8 @@ public class SimpleTests {
         System.err.flush();
 
         // close connections: note ASAPEngine does NOT close any connection!!
-        aliceChannel.close();
-        bobChannel.close();
+        aliceStream.close();
+        bobStream.close();
         System.out.flush();
         System.err.flush();
         Thread.sleep(1000);

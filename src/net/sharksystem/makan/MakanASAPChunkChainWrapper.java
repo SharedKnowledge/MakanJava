@@ -3,7 +3,7 @@ package net.sharksystem.makan;
 import net.sharksystem.asap.ASAPChunkStorage;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPStorage;
-import net.sharksystem.asap.apps.ASAPMessages;
+import net.sharksystem.asap.ASAPMessages;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -84,12 +84,12 @@ class MakanASAPChunkChainWrapper implements Makan {
 
         // what sender has participated in that discussion
         for(CharSequence sender : this.makanStorage.getASAPStorage().getSender()) {
-            ASAPChunkStorage senderStorage = this.makanStorage.getASAPStorage().getIncomingChunkStorage(sender);
+            ASAPStorage senderStorage = this.makanStorage.getASAPStorage().getExistingIncomingStorage(sender);
 
             // no: find anything that was ever received
 //            if(senderStorage.existsChunk(this.uri, this.makanStorage.getASAPStorage().getEra())) { // TODO: getEra()??
                 this.asapMessagesList.add(
-                    senderStorage.getASAPChunkCache(this.uri, this.makanStorage.getASAPStorage().getEra())); // TODO: era??
+                    senderStorage.getChunkChain(this.uri, this.makanStorage.getASAPStorage().getEra())); // TODO: era??
 //            }
         }
     }
