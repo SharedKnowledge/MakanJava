@@ -59,7 +59,7 @@ public class MakanStorage_Impl implements MakanStorage {
             return this.getMakan(this.getASAPStorage().getChannelURIs().get(position));
         }
         catch(IndexOutOfBoundsException e) {
-            throw new ASAPException("position points behind avaiable makan uris: " + position);
+            throw new ASAPException("position points behind available makan uris: " + position);
         }
     }
 
